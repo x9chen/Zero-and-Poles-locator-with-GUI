@@ -184,12 +184,10 @@ class Main(QMainWindow, Ui_MainWindow):
             #limitation of circle
             if ((self.x) ** 2 + (self.y) ** 2) ** 0.5 < 1 and self.y > 0:
                 z = self.x + self.y * 1j
-
                 self.xy.append([self.x, self.y])
                 self.xy.append([self.x, -self.y])
-
-
                 self.zero.append(z)
+                print("zeros: ")
                 print (self.zero)
                 #print (self.xy)
                 #self.update()
@@ -197,10 +195,10 @@ class Main(QMainWindow, Ui_MainWindow):
         if self.radioButton_2.isChecked() == True:
             if ((self.x2) ** 2 + (self.y2) ** 2) ** 0.5 < 1 and self.y2 > 0:
                 z = self.x2 + self.y2 * 1j
-
                 self.xy2.append([self.x2, self.y2])
                 self.xy2.append([self.x2, -self.y2])
                 self.poles.append(z)
+                print("poles: ")
                 print (self.poles)
         self.update()
         self.drawOn2()
@@ -210,16 +208,18 @@ class Main(QMainWindow, Ui_MainWindow):
     def delete_point(self, i):
         if self.radioButton.isChecked() == True:
             self.xy.pop(i)
-            self.xy.pop()
+            self.xy.pop(i)
             self.zero.pop()
+            print("zeros: ")
             print (self.zero)
 
             #self.update()
             #self.drawOn2()
         if self.radioButton.isChecked() == False:
             self.xy2.pop(i)
-            self.xy2.pop()
+            self.xy2.pop(i)
             self.poles.pop()
+            print("poles: ")
             print (self.poles)
         self.update()
         self.drawOn2()
@@ -337,7 +337,6 @@ class Main(QMainWindow, Ui_MainWindow):
         #print(self.points)
         #print(self.points2)
         self.fig.canvas.blit(self.fig.bbox)
-
 
 
     def drawOn2(self):
