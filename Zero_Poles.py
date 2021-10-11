@@ -5,18 +5,42 @@ from numpy import asarray, tan, array, pi, arange, cos, log10, unwrap, angle
 from matplotlib.pyplot import axvline, axhline
 from scipy.signal import freqz
 import matplotlib.pyplot as plt
-from PyQt4.uic import loadUiType
+from PyQt5.uic import loadUiType
 
 import matplotlib.backends.backend_qt4agg
 from matplotlib.figure import Figure
 from matplotlib.backends.backend_qt4agg import (
     FigureCanvasQTAgg as FigureCanvas,
     NavigationToolbar2QT as NavigationToolbar)
-from PyQt4.QtGui import *
-import cPickle
+from PyQt5.QtGui import *
+import pickle as cPickle
 import pickle
 import copy ,copyreg
+import scipy as sp
+from scipy import interpolate
+from numpy import  interp
+from scipy.fft import fft
+from matplotlib import pyplot as plt
+import math
+import csv
+import pandas as pd
+from matplotlib.widgets import Cursor
+from scipy.signal import argrelextrema as ala
+from scipy.optimize import curve_fit
+from scipy import signal
+
 Ui_MainWindow, QMainWindow = loadUiType('zero_poles.ui')
+
+df=pd.read_csv('JTR_WR_tt_85C_1d35V.csv')
+#df=pd.read_csv('JTR_1.csv')
+#df=pd.read_csv('JTR_RD_tt_85C_1d35V.csv')
+#print(df)
+#x1 and y1 are the two columns of the csv file:
+x1=np.array(df['X'])
+y1=np.array(df['Y'])
+b, a = signal.butter(3, 2800*2*np.pi, 'low', analog=True) # for WR
+#b, a = signal.butter(3, 3000*2*np.pi, 'low', analog=True) # for RD
+w, h = signal.freqs(b, a,worN=np.logspace(-3, 4.5, 1000))
 
 
 class Main(QMainWindow, Ui_MainWindow):
@@ -104,8 +128,8 @@ class Main(QMainWindow, Ui_MainWindow):
             while 0 <= index:
                 self.delete_point(index)
                 index -= 2
-
-
+        self.update()
+        self.drawOn2()
 
 
     def on_click(self, event):
@@ -168,8 +192,8 @@ class Main(QMainWindow, Ui_MainWindow):
                 self.zero.append(z)
                 print (self.zero)
                 #print (self.xy)
-                self.update()
-                self.drawOn2()
+                #self.update()
+                #self.drawOn2()
         if self.radioButton_2.isChecked() == True:
             if ((self.x2) ** 2 + (self.y2) ** 2) ** 0.5 < 1 and self.y2 > 0:
                 z = self.x2 + self.y2 * 1j
@@ -178,8 +202,8 @@ class Main(QMainWindow, Ui_MainWindow):
                 self.xy2.append([self.x2, -self.y2])
                 self.poles.append(z)
                 print (self.poles)
-                self.update()
-                self.drawOn2()
+        self.update()
+        self.drawOn2()
 
 
 
@@ -190,15 +214,15 @@ class Main(QMainWindow, Ui_MainWindow):
             self.zero.pop()
             print (self.zero)
 
-            self.update()
-            self.drawOn2()
+            #self.update()
+            #self.drawOn2()
         if self.radioButton.isChecked() == False:
             self.xy2.pop(i)
             self.xy2.pop()
             self.poles.pop()
             print (self.poles)
-            self.update()
-            self.drawOn2()
+        self.update()
+        self.drawOn2()
 
     def start_drag(self, i):
         """Bind mouse motion to updating a particular point."""
@@ -310,6 +334,8 @@ class Main(QMainWindow, Ui_MainWindow):
         self.fig.canvas.restore_region(self.background)
         self.ax.draw_artist(self.points)
         self.ax.draw_artist(self.points2)
+        #print(self.points)
+        #print(self.points2)
         self.fig.canvas.blit(self.fig.bbox)
 
 
@@ -320,16 +346,12 @@ class Main(QMainWindow, Ui_MainWindow):
 
         num, den = zpk2tf(self.zero, self.poles, 1)
 
-
-
-
         w, h = freqz(num, den,worN=10000)
-
 
         #print (h.size)
 
         # put the values to draw
-        self.drawing2.plot(w, 10 * log10(abs(h)))
+        self.drawing2.plot(w/pi, 10 * log10(abs(h/h[0])))
 
         #self.drawing2.plot(w / pi, 20 * log10(abs(h)))
         #self.drawing2.set_xscale('log')
@@ -337,13 +359,31 @@ class Main(QMainWindow, Ui_MainWindow):
         # self.drawing2.set_ylim([0, 100000])
         self.drawing2.set_xlabel('Normalized frequency', fontsize=9)
         self.drawing2.set_ylabel('Amplitude[dB]', fontsize=9)
+
+        #plt.semilogx(w/2/np.pi, 20 * np.log10(abs(1.05*h))) # for RD
+        #plt.semilogx(w/2/np.pi, 20 * np.log10(abs(h)))
+        #plt.plot(w/2/np.pi/4333, 20 * np.log10(abs(h)))
+        #plt.title('Butterworth filter frequency response')
+        #plt.xlabel('Frequency(Hz)')
+        #plt.ylabel('Amplitude [dB]')
+        #plt.margins(0, 0.1)
+        #plt.grid(which='both', axis='both')
+        #plt.axvline(3000, color='green') # cutoff frequency
+        #plt.semilogx(x1, 20 * np.log10(y1))
+        self.drawing2.plot(x1/4500, 10 * np.log10(y1))
+        #plt.xlim(1,10000) # for exporting file
+        #plt.xlim(100,10000) # for picture
+        #plt.xlim(100,10000) # for picture
+        #plt.ylim(-18,5)
+        #plt.show()
+
         self.canvas2.draw()
 
 
 
     def browse(self):
 
-        filepath = QtGui.QFileDialog.getOpenFileName(self, 'Single File', "C:\Users\Hanna Nabil\Desktop",'*.txt')
+        filepath = QtWidgets.QFileDialog.getOpenFileName(self, 'Single File', "C:/Users/xchen/Documents",'*.txt')
 
 
 
@@ -367,16 +407,9 @@ class Main(QMainWindow, Ui_MainWindow):
                 index += 2
 
 
-
-
-
-
     def file_save(self):
 
-
-        name = QtGui.QFileDialog.getSaveFileName(self, 'Save Point', "C:\Users\Hanna Nabil\Desktop", '*.txt')
-
-
+        name,_ = QtWidgets.QFileDialog.getSaveFileName(self, 'Save Point', "C:/Users/xchen/Documents", '*.txt')
 
         file = open(name, "w")
         index = 0
@@ -387,21 +420,68 @@ class Main(QMainWindow, Ui_MainWindow):
             r = y.real
             i = y.imag
 
-
             file.write(str(r) + "\n")
 
             file.write(str(i) + "\n")
+            print(str(r))
+            print(str(i))
             index += 1
         file.close()
 
-
-
 if __name__ == '__main__':
     import sys
-    from PyQt4 import QtGui
+    from PyQt5 import QtWidgets
     import numpy as np
+# read in sample .csv file and plot
 
-    app = QtGui.QApplication(sys.argv)
-    main = Main()
-    main.show()
-    sys.exit(app.exec_())
+# define the true objective function
+def objective(x,a1,c1):
+	return a1*np.abs((1/(1j*x+c1)/(1j*x+3370)))
+# curve fit
+#popt, _ = curve_fit(objective, x1, y1)
+# summarize the parameter values
+#a1,c1= popt
+#print('%g,%g' % (a1,c1))
+#y2=objective(x1,a1,c1)
+#plt.plot(x1,y2)
+
+##PLOTTING3: :
+#x2_OR_vin:
+
+#plt.semilogx(x1, 20 * np.log10(y1))
+#plt.xlim(100,10000)
+#plt.plot(x1,y1)
+#plt.xlabel('frequency(MHz)')
+#plt.ylabel('magnitude')
+#plt.grid()
+#plt.title("fitting")
+#plt.show()
+
+plt.semilogx(w/2/np.pi, np.angle(h,deg=True))
+plt.xlabel('Frequency(Hz)')
+plt.ylabel('Phase(degree)')
+#plt.xlim(1,10000) # for exporting file
+plt.xlim(100,10000) # for picture
+#plt.ylim(-18,5)
+plt.grid(which='both', axis='both')
+#plt.show()
+plt.semilogx(w/2/np.pi, np.angle(h,deg=False))
+plt.xlabel('Frequency(Hz)')
+plt.ylabel('Phase(radian)')
+#plt.xlim(1,10000)  # for exporting file
+plt.xlim(100,10000) # for picture
+#plt.ylim(-18,5)
+plt.grid(which='both', axis='both')
+#plt.show()
+
+table=np.array([w/2/np.pi,abs(h),np.angle(h)])
+table=np.transpose(table)
+JTF = pd.DataFrame(table, columns=['F(MHz)', 'mag','rad'])
+JTF.to_csv('JTR_WR_tt_85C_1d35V_FMP.csv')
+#JTF.to_csv('JTR_RD_tt_85C_1d35V_FMP.csv')
+
+
+app = QtWidgets.QApplication(sys.argv)
+main = Main()
+main.show()
+sys.exit(app.exec_())
