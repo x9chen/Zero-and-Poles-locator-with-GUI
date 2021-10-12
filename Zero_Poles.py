@@ -172,7 +172,6 @@ class Main(QMainWindow, Ui_MainWindow):
     def update(self):
         """Update the artist for any changes to self.xy."""
         if self.radioButton.isChecked() == True:
-
             self.points.set_offsets(self.xy)
             self.blit()
         if self.radioButton.isChecked() == False:
@@ -206,10 +205,11 @@ class Main(QMainWindow, Ui_MainWindow):
 
 
     def delete_point(self, i):
+        print("delete %d" %(i))
         if self.radioButton.isChecked() == True:
             self.xy.pop(i)
             self.xy.pop(i)
-            self.zero.pop()
+            self.zero.pop(int(i/2))
             print("zeros: ")
             print (self.zero)
 
@@ -218,7 +218,7 @@ class Main(QMainWindow, Ui_MainWindow):
         if self.radioButton.isChecked() == False:
             self.xy2.pop(i)
             self.xy2.pop(i)
-            self.poles.pop()
+            self.poles.pop(int(i/2))
             print("poles: ")
             print (self.poles)
         self.update()
@@ -227,12 +227,10 @@ class Main(QMainWindow, Ui_MainWindow):
     def start_drag(self, i):
         """Bind mouse motion to updating a particular point."""
         if self.radioButton.isChecked() == True:
-
             self.drag_i = i
             connect = self.fig.canvas.mpl_connect
             cid1 = connect('motion_notify_event', self.drag_update)
             cid2 = connect('button_release_event', self.end_drag)
-
             self.drag_cids = [cid1, cid2 ]
 
         if self.radioButton.isChecked() == False:
@@ -240,7 +238,6 @@ class Main(QMainWindow, Ui_MainWindow):
             connect = self.fig.canvas.mpl_connect
             cid1 = connect('motion_notify_event', self.drag_update)
             cid2 = connect('button_release_event', self.end_drag)
-
             self.drag_cids2 = [cid1, cid2]
 
 
@@ -248,23 +245,18 @@ class Main(QMainWindow, Ui_MainWindow):
         """Update a point that's being moved interactively."""
         if self.radioButton.isChecked() == True:
             if ((event.xdata) ** 2 + (event.ydata) ** 2) ** 0.5 < 1 and event.ydata > 0:
-
                 self.xy[self.drag_i] = [event.xdata, event.ydata]
                 self.xy[self.drag_i+1] = [event.xdata, -event.ydata]
                 z = event.xdata + event.ydata * 1j
-                self.zero[self.drag_i /2] = z
-
+                self.zero[int(self.drag_i /2)] = z
                 self.update()
                 self.drawOn2()
         if self.radioButton.isChecked() == False:
             if ((event.xdata) ** 2 + (event.ydata) ** 2) ** 0.5 < 1 and event.ydata > 0:
-
                 self.xy2[self.drag_i2] = [event.xdata, event.ydata]
                 self.xy2[self.drag_i2 + 1] = [event.xdata, -event.ydata]
-
                 z = event.xdata + event.ydata * 1j
-                self.poles[self.drag_i2/2] = z
-
+                self.poles[int(self.drag_i2/2)] = z
                 self.update()
                 self.drawOn2()
 
@@ -273,7 +265,6 @@ class Main(QMainWindow, Ui_MainWindow):
     def end_drag(self, event):
         """End the binding of mouse motion to a particular point."""
         if self.radioButton.isChecked() == True:
-
             for cid in self.drag_cids:
                 self.fig.canvas.mpl_disconnect(cid)
         if self.radioButton.isChecked() == False:
