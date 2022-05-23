@@ -3,7 +3,7 @@ from scipy.signal import zpk2ss, ss2zpk, tf2zpk, zpk2tf
 from numpy import linspace, logspace
 from numpy import asarray, tan, array, pi, arange, cos, log10, unwrap, angle
 from matplotlib.pyplot import axvline, axhline
-from scipy.signal import freqz
+from scipy.signal import freqz, freqs
 import matplotlib.pyplot as plt
 from PyQt5.uic import loadUiType
 
@@ -259,6 +259,10 @@ class Main(QMainWindow, Ui_MainWindow):
                 self.poles[int(self.drag_i2/2)] = z
                 self.update()
                 self.drawOn2()
+        print("zeros=")
+        print (self.zero)
+        print("poles=")
+        print (self.poles)
 
 
 
@@ -270,6 +274,13 @@ class Main(QMainWindow, Ui_MainWindow):
         if self.radioButton.isChecked() == False:
             for cid in self.drag_cids2:
                 self.fig.canvas.mpl_disconnect(cid)
+            print("zeros: ")
+            print (self.zero)
+        print("zeros=")
+        print (self.zero)
+        print("poles=")
+        print (self.poles)
+
 
 
     def safe_draw(self):
@@ -337,7 +348,7 @@ class Main(QMainWindow, Ui_MainWindow):
         num, den = zpk2tf(self.zero, self.poles, 1)
 
         w, h = freqz(num, den,worN=10000)
-
+        #w, h = freqs(num, den, worN=logspace(-3, 4.5, 1000))
         #print (h.size)
 
         # put the values to draw
@@ -360,7 +371,7 @@ class Main(QMainWindow, Ui_MainWindow):
         #plt.grid(which='both', axis='both')
         #plt.axvline(3000, color='green') # cutoff frequency
         #plt.semilogx(x1, 20 * np.log10(y1))
-        self.drawing2.plot(x1/4500, 10 * np.log10(y1))
+        self.drawing2.plot(x1/10000, 10 * np.log10(y1))
         #plt.xlim(1,10000) # for exporting file
         #plt.xlim(100,10000) # for picture
         #plt.xlim(100,10000) # for picture
