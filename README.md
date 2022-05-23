@@ -1,3 +1,9 @@
+To run the program:
+
+python Zero_Poles.py
+
+tested with python 3.9 on Windows
+
 # Zero-and-Poles-locator-with-GUI
 
 With this desktop application using Python and PyQt you can draw using your mouse multiple zeros and poles on a unit circle and the corresponding frequency response will be shown.
